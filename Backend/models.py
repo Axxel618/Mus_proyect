@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
-from database import Base
+from Backend.database import Base
 import datetime
 
 # 1. El plano para la tabla de JUGADORES
