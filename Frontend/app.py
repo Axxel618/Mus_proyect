@@ -149,13 +149,13 @@ with tab3:
             
             # Calculamos a los líderes
             mejor_jugador = stats_ind.iloc[0]
-            mas_ganancias = stats_ind.sort_values(by='Balance_Total_€', ascending=False).iloc[0]
-            mas_perdidas = stats_ind.sort_values(by='Balance_Total_€', ascending=True).iloc[0]
+            mas_ganancias = stats_ind.sort_values(by='Balance_Total_', ascending=False).iloc[0]
+            mas_perdidas = stats_ind.sort_values(by='Balance_Total_', ascending=True).iloc[0]
             
             col_m1, col_m2, col_m3 = st.columns(3)
             col_m1.metric("🥇 Más victorias", mejor_jugador['Jugador'], f"{int(mejor_jugador['Victorias'])} ganadas")
-            col_m2.metric("💸 Rey de las Apuestas", mas_ganancias['Jugador'], f"+{mas_ganancias['Balance_Total_€']} €")
-            col_m3.metric("📉 En bancarrota", mas_perdidas['Jugador'], f"{mas_perdidas['Balance_Total_€']} €")
+            col_m2.metric("💸 Rey de las Apuestas", mas_ganancias['Jugador'], f"+{mas_ganancias['Balance_Total_']} €")
+            col_m3.metric("📉 En bancarrota", mas_perdidas['Jugador'], f"{mas_perdidas['Balance_Total_']} €")
             
             st.divider()
             
