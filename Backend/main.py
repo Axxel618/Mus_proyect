@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from Backend.database import engine, SessionLocal, Base
-import Backend.models
+from Backend import models
 
 Base.metadata.create_all(bind=engine)
 
@@ -27,6 +27,9 @@ def get_db():
     finally:
         db.close()
 
+@app.get("/")
+def home():
+    return {"mensaje": "¡El backend de Mus Tracker está funcionando a la perfección! 🃏"}
 
 @app.get("/jugadores/")
 def obtener_jugadores(db: Session = Depends(get_db)):
