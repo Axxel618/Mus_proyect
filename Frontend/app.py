@@ -92,7 +92,6 @@ with tab3:
     st.header("🏆 Panel de Estadísticas")
     
     try:
-        # 1. Pedimos los datos a tu backend en la nube
         respuesta_partidas = requests.get(f"{API_URL}/partidas/")
         
         if respuesta_partidas.status_code == 200:
@@ -104,66 +103,77 @@ with tab3:
         if df.empty:
             st.info("Aún no hay partidas registradas para calcular estadísticas.")
         else:
-            # --- RECUPERAMOS TU LÓGICA DE CÁLCULO ---
             datos_individuales = []
             datos_parejas = []
             
-            # Recorremos cada partida descargada de la base de datos
             for _, row in df.iterrows():
                 ganador = row['pareja_ganadora']
                 apuesta = row['apuesta']
                 
-                # Definimos quién gana y cuánto dinero
                 win_A = 1 if ganador == 'A' else 0
                 win_B = 1 if ganador == 'B' else 0
                 dinero_A = apuesta if ganador == 'A' else -apuesta
                 dinero_B = apuesta if ganador == 'B' else -apuesta
                 
-                # Nombres de parejas ordenados alfabéticamente
                 pareja_A = " & ".join(sorted([row['jugador1A'], row['jugador2A']]))
                 pareja_B = " & ".join(sorted([row['jugador1B'], row['jugador2B']]))
                 
-                # Guardamos datos de Parejas
                 datos_parejas.extend([
                     {'Pareja': pareja_A, 'Victorias': win_A, 'Partidas': 1},
                     {'Pareja': pareja_B, 'Victorias': win_B, 'Partidas': 1}
                 ])
                 
-                # Guardamos datos Individuales
                 for j in [row['jugador1A'], row['jugador2A']]:
                     datos_individuales.append({'Jugador': j, 'Victorias': win_A, 'Dinero': dinero_A})
                 for j in [row['jugador1B'], row['jugador2B']]:
                     datos_individuales.append({'Jugador': j, 'Victorias': win_B, 'Dinero': dinero_B})
             
-            # Convertimos las listas a Tablas de Pandas
             df_ind = pd.DataFrame(datos_individuales)
             df_par = pd.DataFrame(datos_parejas)
             
-            # --- AGRUPAMOS LAS ESTADÍSTICAS ---
-            # 1. Ranking Individual
+            # --- AGRUPAMOS ESTADÍSTICAS ---
             stats_ind = df_ind.groupby('Jugador').agg(
                 Partidas=('Victorias', 'count'),
                 Victorias=('Victorias', 'sum'),
-                Balance_Total=('Dinero', 'sum')
+                Balance_Total_=('Dinero', 'sum')
             ).reset_index()
             stats_ind['% Victorias'] = ((stats_ind['Victorias'] / stats_ind['Partidas']) * 100).round(1)
             stats_ind = stats_ind.sort_values(by='Victorias', ascending=False)
             
-            # 2. Ranking de Parejas
             stats_par = df_par.groupby('Pareja').sum().reset_index()
             stats_par['% Victorias'] = ((stats_par['Victorias'] / stats_par['Partidas']) * 100).round(1)
             stats_par = stats_par.sort_values(by='Victorias', ascending=False)
             
-            # --- INTERFAZ VISUAL ---
+            # --- SECCIÓN VISUAL MEJORADA ---
+            st.subheader("💰 Resumen del Torneo")
+            
+            # Calculamos a los líderes
+            mejor_jugador = stats_ind.iloc[0]
+            mas_ganancias = stats_ind.sort_values(by='Balance_Total_€', ascending=False).iloc[0]
+            mas_perdidas = stats_ind.sort_values(by='Balance_Total_€', ascending=True).iloc[0]
+            
+            col_m1, col_m2, col_m3 = st.columns(3)
+            col_m1.metric("🥇 Más victorias", mejor_jugador['Jugador'], f"{int(mejor_jugador['Victorias'])} ganadas")
+            col_m2.metric("💸 Rey de las Apuestas", mas_ganancias['Jugador'], f"+{mas_ganancias['Balance_Total_€']} €")
+            col_m3.metric("📉 En bancarrota", mas_perdidas['Jugador'], f"{mas_perdidas['Balance_Total_€']} €")
+            
+            st.divider()
+            
             col_stats1, col_stats2 = st.columns(2)
             with col_stats1:
-                st.subheader("🥇 Ranking Individual")
+                st.markdown("**Ranking Individual**")
                 st.dataframe(stats_ind.set_index('Jugador'), use_container_width=True)
             with col_stats2:
-                st.subheader("🤝 Mejores Parejas")
+                st.markdown("**Mejores Parejas**")
                 st.dataframe(stats_par.set_index('Pareja'), use_container_width=True)
+                
+            st.divider()
+            
+            # --- GRÁFICO DE VICTORIAS ---
+            st.subheader("📈 Gráfico de Victorias por Jugador")
+            # Extraemos solo el nombre y las victorias para el gráfico
+            datos_grafico = stats_ind[['Jugador', 'Victorias']].set_index('Jugador')
+            st.bar_chart(datos_grafico)
                 
     except Exception as e:
         st.error(f"Error al leer las estadísticas: {e}")
-
-        
