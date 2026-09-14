@@ -63,3 +63,21 @@ def guardar_partida(partida: PartidaCreate, db: Session = Depends(get_db)):
     db.add(nueva_partida)
     db.commit()
     return {"mensaje": "Partida guardada correctamente en la nube"}
+
+@app.get("/partidas/")
+def obtener_partidas(db: Session = Depends(get_db)):
+    partidas_db = db.query(models.PartidaDB).all()
+    lista_partidas = []
+    
+    for p in partidas_db:
+        lista_partidas.append({
+            "jugador1A": p.jugador1A,
+            "jugador2A": p.jugador2A,
+            "jugador1B": p.jugador1B,
+            "jugador2B": p.jugador2B,
+            "pareja_ganadora": p.pareja_ganadora,
+            "tipo_partida": p.tipo_partida,
+            "apuesta": p.apuesta
+        })
+        
+    return lista_partidas
